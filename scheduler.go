@@ -4,37 +4,53 @@ import (
 	"time"
 )
 
-type Scheduler struct {
-	jobs     []*Job
+/*Scheduler is a simple task scheduling tool.
+ */
+type Scheduler interface {
+	Tick() time.Duration
+	Aligned() bool
+	SetAligned(aligned bool) Scheduler
+	AddJob(name string, jobFunc func()) *job
+	Start() chan int
+	Stop()
+	WaitAndStop()
+}
+
+/*NewScheduler creates a new Scheduler instance with provided precision.
+Higher precision means more frequent evaluation of Schedules.
+To reduce overhead please avoid using tick time smaller than 1 second unless you really need it.
+*/
+func NewScheduler(tick time.Duration) Scheduler {
+	return &scheduler{
+		tick:     tick,
+		jobs:     []*job{},
+		finished: make(chan int),
+	}
+}
+
+type scheduler struct {
+	jobs     []*job
 	finished chan int
 	tick     time.Duration
 	aligned  bool
 	ticker   *time.Ticker
 }
 
-func (s *Scheduler) Tick() time.Duration {
+func (s *scheduler) Tick() time.Duration {
 	return s.tick
 }
 
-func (s *Scheduler) Aligned() bool {
+func (s *scheduler) Aligned() bool {
 	return s.aligned
 }
 
-func (s *Scheduler) SetAligned(aligned bool) *Scheduler {
+func (s *scheduler) SetAligned(aligned bool) Scheduler {
 	s.aligned = aligned
 	return s
 }
 
-func NewScheduler(tick time.Duration) *Scheduler {
-	return &Scheduler{
-		tick:     tick,
-		jobs:     []*Job{},
-		finished: make(chan int),
-	}
-}
-
-func (s *Scheduler) AddJob(name string, jobFunc func()) *Job {
-	job := &Job{
+func (s *scheduler) AddJob(name string, jobFunc func()) *job {
+	job := &job{
 		jobFunc:  jobFunc,
 		name:     name,
 		schedule: NewConstrainedSchedule(s.tick).SetAligned(s.aligned),
@@ -44,7 +60,7 @@ func (s *Scheduler) AddJob(name string, jobFunc func()) *Job {
 	return job
 }
 
-func (s *Scheduler) Start() chan int {
+func (s *scheduler) Start() chan int {
 
 	if s.aligned {
 		curTime := time.Now()
@@ -70,19 +86,19 @@ func (s *Scheduler) Start() chan int {
 	return stopped
 }
 
-func (s *Scheduler) Stop() {
+func (s *scheduler) Stop() {
 
 	s.finished <- 1
 }
 
-func (s *Scheduler) WaitAndStop() {
+func (s *scheduler) WaitAndStop() {
 	panic("not implemented")
 
 	// TODO: use waitgroup to wait for running tasks
-	s.finished <- 1
+	//s.finished <- 1
 }
 
-func (s *Scheduler) runPending(tick time.Time) {
+func (s *scheduler) runPending(tick time.Time) {
 	for _, job := range s.jobs {
 		if job.shouldRun(tick) {
 			job.run(tick)

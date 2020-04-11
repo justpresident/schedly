@@ -5,7 +5,33 @@ import (
 	"time"
 )
 
-type Job struct {
+/*Job represents a configuration of a task scheduled for execution
+*/
+type Job interface {
+	/*IntervalMode returns intervalMode of the job. When true job schedule receives previous successful finish time as a param in CanRun method.
+
+	When false job schedule receives previous start time as a param in CanRun method*/
+	IntervalMode() bool
+
+	/*SetIntervalMode sets intervalMode of the job. When 'true' job schedule receives previous successful finish time as a param in CanRun method.
+
+	When 'false' job schedule receives previous start time as a param in CanRun method*/
+	SetIntervalMode(intervalMode bool)
+
+	/*Exclusive returns Exclusive setting of the job. When 'true' it prevents from running multiple instances of the job at the same time*/
+	Exclusive() bool
+	/*SetExclusive configures Exclusive mode. When 'true' it prevents from running multiple instances of the job at the same time*/
+	SetExclusive(exclusive bool)
+
+	/*Schedule for running the job.*/
+	Schedule() Schedule
+	/*SetSchedule sets schedule for running the job*/
+	SetSchedule(schedule Schedule)
+	shouldRun(tick time.Time) bool
+	run(tick time.Time)
+}
+
+type job struct {
 	jobFunc      func()
 	name         string
 	schedule     Schedule
@@ -16,39 +42,33 @@ type Job struct {
 	lock         sync.Mutex
 }
 
-/*
-	When true job schedule receives previous successful finish time as a param in CanRun method.
 
-	When false job schedule receives previous start time as a param in CanRun method
-*/
-func (j *Job) IntervalMode() bool {
+func (j *job) IntervalMode() bool {
 	return j.intervalMode
 }
 
-func (j *Job) SetIntervalMode(intervalMode bool) {
+func (j *job) SetIntervalMode(intervalMode bool) {
 	j.intervalMode = intervalMode
 }
 
-/*
-	Exclusive mode prevents from running multiple instances of the job at the same time
-*/
-func (j *Job) Exclusive() bool {
+func (j *job) Exclusive() bool {
 	return j.exclusive
 }
 
-func (j *Job) SetExclusive(exclusive bool) {
+
+func (j *job) SetExclusive(exclusive bool) {
 	j.exclusive = exclusive
 }
 
-func (j *Job) Schedule() Schedule {
+func (j *job) Schedule() Schedule {
 	return j.schedule
 }
 
-func (j *Job) SetSchedule(schedule Schedule) {
+func (j *job) SetSchedule(schedule Schedule) {
 	j.schedule = schedule
 }
 
-func (j *Job) shouldRun(tick time.Time) bool {
+func (j *job) shouldRun(tick time.Time) bool {
 	lastTime := j.lastRun
 	if j.intervalMode {
 		lastTime = j.lastSuccess
@@ -64,7 +84,7 @@ func (j *Job) shouldRun(tick time.Time) bool {
 
 	Parameter `tick` is time from internal ticker
 */
-func (j *Job) run(tick time.Time) {
+func (j *job) run(tick time.Time) {
 	j.lastRun = tick
 	go func() {
 		if j.exclusive {
