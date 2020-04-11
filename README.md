@@ -1,5 +1,5 @@
 # schedly: A job scheduling library for Golang applications
-![Go Test](https://github.com/justpresident/schedly/workflows/Go%20Test/badge.svg?branch=master) ![Go Report Card](https://goreportcard.com/badge/github.com/justpresident/schedly)
+![Go Test](https://github.com/justpresident/schedly/workflows/Go%20Test/badge.svg?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/justpresident/schedly)](https://goreportcard.com/report/github.com/justpresident/schedly)
 
 Very simple and flexible task scheduling library for Golang applications without extra dependencies.
 
