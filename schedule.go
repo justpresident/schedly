@@ -33,7 +33,7 @@ func (s *ConstrainedSchedule) SetAligned(aligned bool) *ConstrainedSchedule {
 }
 
 /*CanRun checks if task can be launched based on current moment and last launch time.
-	When the job is started in Interval mode, last finish time is supplied as a lastRun parameter
+When the job is started in Interval mode, last finish time is supplied as a lastRun parameter
 */
 func (s *ConstrainedSchedule) CanRun(moment time.Time, lastRun time.Time) bool {
 	// safety gap here = 1.1 Making it smaller wouldn't affect execution really. It just needs to be in the interval (1+epsilon,2-epsilon)
@@ -53,26 +53,26 @@ func (s *ConstrainedSchedule) CanRun(moment time.Time, lastRun time.Time) bool {
 }
 
 /*ConstraintFunc returns constraint function used to check if execution can be started.
-*/
+ */
 func (s *ConstrainedSchedule) ConstraintFunc() func(time.Time) bool {
 	return s.constraintFunc
 }
 
 /*SetConstraintFunc sets extra constraint function to check if execution can be started.
-*/
+ */
 func (s *ConstrainedSchedule) SetConstraintFunc(constraintFunc func(time.Time) bool) *ConstrainedSchedule {
 	s.constraintFunc = constraintFunc
 	return s
 }
 
 /*Every return an interval for running a task
-*/
+ */
 func (s *ConstrainedSchedule) Every() time.Duration {
 	return s.every
 }
 
 /*SetEvery sets an interval for running the task
-*/
+ */
 func (s *ConstrainedSchedule) SetEvery(every time.Duration) *ConstrainedSchedule {
 	s.every = every
 	return s

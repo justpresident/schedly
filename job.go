@@ -6,7 +6,7 @@ import (
 )
 
 /*Job represents a configuration of a task scheduled for execution
-*/
+ */
 type Job interface {
 	/*IntervalMode returns intervalMode of the job. When true job schedule receives previous successful finish time as a param in CanRun method.
 
@@ -42,7 +42,6 @@ type job struct {
 	lock         sync.Mutex
 }
 
-
 func (j *job) IntervalMode() bool {
 	return j.intervalMode
 }
@@ -54,7 +53,6 @@ func (j *job) SetIntervalMode(intervalMode bool) {
 func (j *job) Exclusive() bool {
 	return j.exclusive
 }
-
 
 func (j *job) SetExclusive(exclusive bool) {
 	j.exclusive = exclusive

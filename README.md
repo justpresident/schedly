@@ -3,6 +3,8 @@
 
 Very simple and flexible task scheduling library for Golang applications without extra dependencies.
 
+**This is a WIP project. The interface will most probably change in the nearest future. Please stay tuned for a final release**
+
 Install:
 ```bash
 go get github.com/justpresident/schedly
@@ -36,12 +38,10 @@ func main() {
   
   stopped := sched.Start()
   
-  go func() {
-    ... // do whatever your application needs to do and then call
-    sched.Stop() // to stop the scheduler
-    // or
-    sched.WaitAndStop() // to gracefully wait for all the running tasks to finish and then stop
-  }()
+  ... // do whatever your application needs to do and then call
+  sched.Stop() // to stop the scheduler
+  // or
+  sched.WaitAndStop() // to gracefully wait for all the running tasks to finish and then stop
   
   <-stopped // wait until scheduler stops
 }
