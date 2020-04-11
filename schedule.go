@@ -4,30 +4,39 @@ import (
 	"time"
 )
 
-/*Schedule is used by Scheduler to understand when tasks need to be launched
+/*schedule has a constrained function, allowing flexible configuration
  */
-type Schedule interface {
-	CanRun(moment time.Time, lastRun time.Time) bool
-}
-
-/*ConstrainedSchedule has a constrained function, allowing flexible configuration
- */
-type ConstrainedSchedule struct {
+type schedule struct {
 	tick           time.Duration
 	every          time.Duration
 	aligned        bool
+	intervalMode   bool
 	constraintFunc func(time.Time) bool
+}
+
+/*IntervalMode returns intervalMode setting. When true job schedule receives previous successful finish time as a param in CanRun method.
+
+When false job schedule receives previous start time as a param in CanRun method*/
+func (s *schedule) IntervalMode() bool {
+	return s.intervalMode
+}
+
+/*SetIntervalMode sets intervalMode. When 'true' job schedule receives previous successful finish time as a param in CanRun method.
+
+  When 'false' job schedule receives previous start time as a param in CanRun method*/
+func (s *schedule) SetIntervalMode(intervalMode bool) {
+	s.intervalMode = intervalMode
 }
 
 /*Aligned returns Aligned flag. If set to true tasks are launched at the beginning of configured 'Every' interval
  */
-func (s *ConstrainedSchedule) Aligned() bool {
+func (s *schedule) Aligned() bool {
 	return s.aligned
 }
 
 /*SetAligned sets Aligned flag. If set to true tasks are launched at the beginning of configured 'Every' interval
  */
-func (s *ConstrainedSchedule) SetAligned(aligned bool) *ConstrainedSchedule {
+func (s *schedule) SetAligned(aligned bool) *schedule {
 	s.aligned = aligned
 	return s
 }
@@ -35,7 +44,7 @@ func (s *ConstrainedSchedule) SetAligned(aligned bool) *ConstrainedSchedule {
 /*CanRun checks if task can be launched based on current moment and last launch time.
 When the job is started in Interval mode, last finish time is supplied as a lastRun parameter
 */
-func (s *ConstrainedSchedule) CanRun(moment time.Time, lastRun time.Time) bool {
+func (s *schedule) CanRun(moment time.Time, lastRun time.Time) bool {
 	// safety gap here = 1.1 Making it smaller wouldn't affect execution really. It just needs to be in the interval (1+epsilon,2-epsilon)
 	// where epsilon is time.Ticker precision error
 	if lastRun.IsZero() && s.aligned && (moment.Sub(moment.Truncate(s.every))) > (11*s.tick)/10 {
@@ -54,36 +63,36 @@ func (s *ConstrainedSchedule) CanRun(moment time.Time, lastRun time.Time) bool {
 
 /*ConstraintFunc returns constraint function used to check if execution can be started.
  */
-func (s *ConstrainedSchedule) ConstraintFunc() func(time.Time) bool {
+func (s *schedule) ConstraintFunc() func(time.Time) bool {
 	return s.constraintFunc
 }
 
 /*SetConstraintFunc sets extra constraint function to check if execution can be started.
  */
-func (s *ConstrainedSchedule) SetConstraintFunc(constraintFunc func(time.Time) bool) *ConstrainedSchedule {
+func (s *schedule) SetConstraintFunc(constraintFunc func(time.Time) bool) *schedule {
 	s.constraintFunc = constraintFunc
 	return s
 }
 
 /*Every return an interval for running a task
  */
-func (s *ConstrainedSchedule) Every() time.Duration {
+func (s *schedule) Every() time.Duration {
 	return s.every
 }
 
 /*SetEvery sets an interval for running the task
  */
-func (s *ConstrainedSchedule) SetEvery(every time.Duration) *ConstrainedSchedule {
+func (s *schedule) SetEvery(every time.Duration) *schedule {
 	s.every = every
 	return s
 }
 
-/*NewConstrainedSchedule creates new ConstrainedSchedule. tick is a tick time from Scheduler. Used for aligning intervals internally
+/*newSchedule creates new schedule. tick is a tick time from Scheduler. Used for aligning intervals internally
  */
-func NewConstrainedSchedule(tick time.Duration) *ConstrainedSchedule {
-	return &ConstrainedSchedule{
+func newSchedule(tick time.Duration) *schedule {
+	return &schedule{
 		tick:           tick,
 		every:          tick,
-		constraintFunc: func(moment time.Time) bool { return true },
+		constraintFunc: nil,
 	}
 }

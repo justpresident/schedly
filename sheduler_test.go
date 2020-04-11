@@ -6,7 +6,7 @@ import (
 )
 
 func TestStartStop(t *testing.T) {
-	sched := NewScheduler(time.Second)
+	sched := NewScheduler(time.Millisecond)
 	done := sched.Start()
 
 	sched.Stop()
@@ -15,14 +15,14 @@ func TestStartStop(t *testing.T) {
 }
 
 func TestAddJob(t *testing.T) {
-	sched := NewScheduler(time.Second)
+	sched := NewScheduler(time.Millisecond)
 	tasks := []string{"x", "y"}
 
 	resultChan := make(chan string)
 	for tNum := 0; tNum < len(tasks); tNum++ {
 		tName := tasks[tNum]
 
-		sched.AddJob(tName, func() {
+		sched.Schedule(time.Millisecond, tName, func() {
 			resultChan <- tName
 		})
 	}

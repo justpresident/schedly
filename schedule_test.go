@@ -8,8 +8,8 @@ import (
 )
 
 func TestConstrainedSchedule_Aligned(t *testing.T) {
-	assert.True(t, (&ConstrainedSchedule{aligned: true}).Aligned())
-	assert.False(t, (&ConstrainedSchedule{aligned: false}).Aligned())
+	assert.True(t, (&schedule{aligned: true}).Aligned())
+	assert.False(t, (&schedule{aligned: false}).Aligned())
 }
 
 func mkTime(v string) time.Time {
@@ -96,7 +96,7 @@ func TestConstrainedSchedule_CanRun(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &ConstrainedSchedule{
+			s := &schedule{
 				tick:           tt.fields.tick,
 				every:          tt.fields.every,
 				aligned:        tt.fields.aligned,
@@ -113,13 +113,13 @@ func TestConstrainedSchedule_ConstraintFunc(t *testing.T) {
 
 	constraintFunc := func(tm time.Time) bool { return tm.IsZero() }
 
-	gotFunc := (&ConstrainedSchedule{constraintFunc: constraintFunc}).ConstraintFunc()
+	gotFunc := (&schedule{constraintFunc: constraintFunc}).ConstraintFunc()
 	assert.Equal(t, gotFunc(time.Time{}), true)
 	assert.Equal(t, gotFunc(time.Now()), false)
 
 }
 
 func TestConstrainedSchedule_Every(t *testing.T) {
-	assert.Equal(t, (&ConstrainedSchedule{}).SetEvery(time.Minute).Every(), time.Minute)
-	assert.Equal(t, (&ConstrainedSchedule{every: time.Millisecond}).SetEvery(time.Second).Every(), time.Second)
+	assert.Equal(t, (&schedule{}).SetEvery(time.Minute).Every(), time.Minute)
+	assert.Equal(t, (&schedule{every: time.Millisecond}).SetEvery(time.Second).Every(), time.Second)
 }

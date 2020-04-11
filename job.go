@@ -5,84 +5,40 @@ import (
 	"time"
 )
 
-/*Job represents a configuration of a task scheduled for execution
+/*job represents a configuration of a task scheduled for execution
  */
-type Job interface {
-	/*IntervalMode returns intervalMode of the job. When true job schedule receives previous successful finish time as a param in CanRun method.
-
-	When false job schedule receives previous start time as a param in CanRun method*/
-	IntervalMode() bool
-
-	/*SetIntervalMode sets intervalMode of the job. When 'true' job schedule receives previous successful finish time as a param in CanRun method.
-
-	When 'false' job schedule receives previous start time as a param in CanRun method*/
-	SetIntervalMode(intervalMode bool)
-
-	/*Exclusive returns Exclusive setting of the job. When 'true' it prevents from running multiple instances of the job at the same time*/
-	Exclusive() bool
-	/*SetExclusive configures Exclusive mode. When 'true' it prevents from running multiple instances of the job at the same time*/
-	SetExclusive(exclusive bool)
-
-	/*Schedule for running the job.*/
-	Schedule() Schedule
-	/*SetSchedule sets schedule for running the job*/
-	SetSchedule(schedule Schedule)
-	shouldRun(tick time.Time) bool
-	run(tick time.Time)
-}
-
 type job struct {
-	jobFunc      func()
-	name         string
-	schedule     Schedule
-	lastRun      time.Time
-	lastSuccess  time.Time
-	exclusive    bool
-	intervalMode bool
-	lock         sync.Mutex
+	jobFunc    func()
+	name       string
+	lastRun    time.Time
+	lastFinish time.Time
+	exclusive  bool
+	lock       sync.Mutex
 }
 
-func (j *job) IntervalMode() bool {
-	return j.intervalMode
+/*LastFinish return the last time the job finished execution*/
+func (j *job) LastFinish() time.Time {
+	return j.lastFinish
 }
 
-func (j *job) SetIntervalMode(intervalMode bool) {
-	j.intervalMode = intervalMode
+/*LastRun returns the last time the job has been launched*/
+func (j *job) LastRun() time.Time {
+	return j.lastRun
 }
 
+/*Exclusive returns Exclusive setting of the job. When 'true' it prevents from running multiple instances of the job at the same time*/
 func (j *job) Exclusive() bool {
 	return j.exclusive
 }
 
+/*SetExclusive configures Exclusive mode. When 'true' it prevents from running multiple instances of the job at the same time*/
 func (j *job) SetExclusive(exclusive bool) {
 	j.exclusive = exclusive
 }
 
-func (j *job) Schedule() Schedule {
-	return j.schedule
-}
-
-func (j *job) SetSchedule(schedule Schedule) {
-	j.schedule = schedule
-}
-
-func (j *job) shouldRun(tick time.Time) bool {
-	lastTime := j.lastRun
-	if j.intervalMode {
-		lastTime = j.lastSuccess
-	}
-
-	shouldRun := j.schedule.CanRun(tick, lastTime)
-
-	return shouldRun
-}
-
-/*
-	Run the job.
-
-	Parameter `tick` is time from internal ticker
-*/
-func (j *job) run(tick time.Time) {
+/* Run the job.
+Parameter `tick` is time from internal ticker. Last job run time is set to this value before launch*/
+func (j *job) Run(tick time.Time) {
 	j.lastRun = tick
 	go func() {
 		if j.exclusive {
@@ -90,6 +46,6 @@ func (j *job) run(tick time.Time) {
 			defer j.lock.Unlock()
 		}
 		j.jobFunc()
-		j.lastSuccess = time.Now()
+		j.lastFinish = time.Now()
 	}()
 }
