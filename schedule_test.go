@@ -29,7 +29,7 @@ func TestConstrainedSchedule_CanRun(t *testing.T) {
 	}
 	type args struct {
 		moment  time.Time
-		lastRun time.Time
+		j *job
 	}
 	tests := []struct {
 		name   string
@@ -47,7 +47,7 @@ func TestConstrainedSchedule_CanRun(t *testing.T) {
 			},
 			args: args{
 				moment:  mkTime("2006-01-02T15:04:05Z"),
-				lastRun: time.Time{},
+				j : &job{},
 			},
 			want: false,
 		},
@@ -61,7 +61,7 @@ func TestConstrainedSchedule_CanRun(t *testing.T) {
 			},
 			args: args{
 				moment:  mkTime("2006-01-02T15:04:00Z"),
-				lastRun: time.Time{},
+				j : &job{},
 			},
 			want: true,
 		},
@@ -75,7 +75,7 @@ func TestConstrainedSchedule_CanRun(t *testing.T) {
 			},
 			args: args{
 				moment:  mkTime("2006-01-02T15:04:00Z"),
-				lastRun: time.Time{},
+				j : &job{},
 			},
 			want: true,
 		},
@@ -89,7 +89,7 @@ func TestConstrainedSchedule_CanRun(t *testing.T) {
 			},
 			args: args{
 				moment:  mkTime("2006-01-02T15:05:00Z"),
-				lastRun: time.Time{},
+				j : &job{},
 			},
 			want: false,
 		},
@@ -102,7 +102,7 @@ func TestConstrainedSchedule_CanRun(t *testing.T) {
 				aligned:        tt.fields.aligned,
 				constraintFunc: tt.fields.constraintFunc,
 			}
-			if got := s.CanRun(tt.args.moment, tt.args.lastRun); got != tt.want {
+			if got := s.CanRun(tt.args.moment, tt.args.j); got != tt.want {
 				t.Errorf("CanRun() = %v, want %v", got, tt.want)
 			}
 		})

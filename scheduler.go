@@ -13,9 +13,10 @@ type Scheduler interface {
 	NewSchedule(every time.Duration) *schedule
 	Schedule(every time.Duration, name string, jobFunc func()) *job
 	AddJob(schedule *schedule, name string, jobFunc func()) *job
-	Start() chan int
+	Start()
 	Stop()
-	WaitAndStop()
+	WaitForRunningTasks()
+	WaitUntilStopped()
 }
 
 /*NewScheduler creates a new Scheduler instance with provided precision.
@@ -24,18 +25,20 @@ To reduce overhead please avoid using tick time smaller than 1 second unless you
 */
 func NewScheduler(tick time.Duration) Scheduler {
 	return &scheduler{
-		tick:     tick,
-		jobs:     make(map[*schedule][]*job),
-		finished: make(chan int),
+		tick:       tick,
+		jobs:       make(map[*schedule][]*job),
+		toFinish:   make(chan int),
+		globalStop: make(chan bool),
 	}
 }
 
 type scheduler struct {
-	jobs     map[*schedule][]*job
-	finished chan int
-	tick     time.Duration
-	aligned  bool
-	ticker   *time.Ticker
+	jobs       map[*schedule][]*job
+	toFinish   chan int
+	globalStop chan bool
+	tick       time.Duration
+	aligned    bool
+	ticker     *time.Ticker
 }
 
 func (s *scheduler) Tick() time.Duration {
@@ -52,7 +55,7 @@ func (s *scheduler) SetAligned(aligned bool) Scheduler {
 }
 
 func (s *scheduler) NewSchedule(every time.Duration) *schedule {
-	schedule := newSchedule(s.tick).SetEvery(every)
+	schedule := newSchedule(s.tick).SetEvery(every).SetAligned(s.aligned)
 	return schedule
 }
 
@@ -75,7 +78,7 @@ func (s *scheduler) AddJob(schedule *schedule, name string, jobFunc func()) *job
 	return j
 }
 
-func (s *scheduler) Start() chan int {
+func (s *scheduler) Start() {
 
 	if s.aligned {
 		curTime := time.Now()
@@ -84,45 +87,42 @@ func (s *scheduler) Start() chan int {
 
 	s.ticker = time.NewTicker(s.tick)
 
-	stopped := make(chan int)
 	go func() {
 		for {
 			select {
 			case tick := <-s.ticker.C:
 				s.runPending(tick)
-			case <-s.finished:
+			case <-s.toFinish:
 				s.ticker.Stop()
-				stopped <- 1
+				s.globalStop <- true
 				return
 			}
 		}
 	}()
-
-	return stopped
 }
 
 func (s *scheduler) Stop() {
-
-	s.finished <- 1
+	s.toFinish <- 1
 }
 
-func (s *scheduler) WaitAndStop() {
-	panic("not implemented")
+func (s *scheduler) WaitUntilStopped() {
+	<-s.globalStop
+}
 
+func (s *scheduler) WaitForRunningTasks() {
 	// TODO: use waitgroup to wait for running tasks
-	//s.finished <- 1
 }
 
 func (s *scheduler) runPending(tick time.Time) {
 	for schedule, jobs := range s.jobs {
-		for _, job := range jobs {
-			lastTime := job.LastRun()
-			if schedule.IntervalMode() {
-				lastTime = job.LastFinish()
-			}
-			if schedule.CanRun(tick, lastTime) {
-				job.Run(tick)
+		for _, j := range jobs {
+			if schedule.CanRun(tick, j) {
+				s.runJob(tick, j)
 			}
 		}
 	}
+}
+
+func (s *scheduler) runJob(tick time.Time, j *job) {
+	j.Run(tick)
 }

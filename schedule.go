@@ -44,7 +44,11 @@ func (s *schedule) SetAligned(aligned bool) *schedule {
 /*CanRun checks if task can be launched based on current moment and last launch time.
 When the job is started in Interval mode, last finish time is supplied as a lastRun parameter
 */
-func (s *schedule) CanRun(moment time.Time, lastRun time.Time) bool {
+func (s *schedule) CanRun(moment time.Time, j *job) bool {
+	lastRun := j.LastRun()
+	if s.IntervalMode() {
+		lastRun = j.LastFinish()
+	}
 	// safety gap here = 1.1 Making it smaller wouldn't affect execution really. It just needs to be in the interval (1+epsilon,2-epsilon)
 	// where epsilon is time.Ticker precision error
 	if lastRun.IsZero() && s.aligned && (moment.Sub(moment.Truncate(s.every))) > (11*s.tick)/10 {

@@ -15,6 +15,10 @@ type job struct {
 	exclusive  bool
 	lock       sync.Mutex
 }
+/*Name returns the job name*/
+func (j *job) Name() string {
+	return j.name
+}
 
 /*LastFinish return the last time the job finished execution*/
 func (j *job) LastFinish() time.Time {
