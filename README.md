@@ -15,8 +15,11 @@ Examples:
 package main
 
 import (
-  "time"
-  "github.com/justpresident/schedly"
+
+"fmt"
+"github.com/justpresident/schedly"
+"time"
+
 )
 
 func main() {
@@ -25,24 +28,32 @@ func main() {
     SetAligned(true) // start launching tasks at the beginning of their period - e.g.
                      // minutely tasks at the beginning of every minute.
   
-  // Let's define a schedule for our job - every minute of NASDAQ trading time
-  nasdaqTimeSchedule := schedly.NewConstrainedSchedule(sched.Tick()).
-		SetEvery(time.Minute). // execute minutely
-		SetAligned(true).      // at the beginning of the minute
-		SetConstraintFunc(isNasdaqTime) // at isNasdaqTime := func(moment time.Time) bool {...} 
+   // Print current time every 5 seconds
+  sched.Schedule(5*time.Second, "print time", func() {fmt.Print(time.Now())})
+
+  sched.Start()
+
+  sched.WaitUntilStopped() // to wait indefinitely until program exits or someone calls Stop()
+}
+```
+schedly doesn't take any assumptions and allows you to implement any schedule easily.
+
+Let's define a schedule for our job - every minute of NASDAQ trading time.
+```go
+  nasdaqTimeSchedule := sched.NewSchedule(time.Minute). // execute tasks minutely
+	SetConstraintFunc(isNasdaqTime) // where isNasdaqTime := func(moment time.Time) bool {...} 
   
   sched.AddJob(
-		"download TSLA stock price",
-		func() { updateQuote("TSLA") },
-	).SetSchedule(nasdaqTimeSchedule)
-  
-  stopped := sched.Start()
-  
+    nasdaqTimeSchedule,
+    "download TSLA stock price",
+    func() { updateQuote("TSLA") },
+  )
+```
+
+To stop scheduler from running new tasks:
+```go
   ... // do whatever your application needs to do and then call
-  sched.Stop() // to stop the scheduler
-  // or
-  sched.WaitAndStop() // to gracefully wait for all the running tasks to finish and then stop
-  
-  <-stopped // wait until scheduler stops
-}
+  sched.Stop() // to stop scheduling new tasks
+  // and optionally
+  sched.WaitForRunningTasks() // to gracefully wait for all the running tasks to finish
 ```
