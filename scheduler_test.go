@@ -2,6 +2,7 @@ package schedly
 
 import (
 	"github.com/stretchr/testify/assert"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -60,6 +61,28 @@ func TestAddJob(t *testing.T) {
 		}
 	}
 
-
 	sched.WaitUntilStopped()
+}
+
+func TestScheduler_WaitForRunningTasks(t *testing.T) {
+	sched := NewScheduler(time.Millisecond)
+
+	var result int32 = 1
+	sched.Schedule(time.Millisecond, "x", func() {
+		time.Sleep(5 * time.Millisecond)
+		atomic.CompareAndSwapInt32(&result, 1, 2)
+	})
+
+	sched.Start()
+
+	time.Sleep(time.Millisecond)
+
+	sched.Stop()
+	waitStarted := time.Now()
+	sched.WaitForRunningTasks()
+	waited := time.Now().Sub(waitStarted).Milliseconds()
+	assert.Less(t, int64(4), waited, "Shoul've waited for the task to finish")
+	t.Logf("Waited for tasks to finish for %d ms", waited)
+
+	assert.Equal(t, int32(2), atomic.LoadInt32(&result))
 }

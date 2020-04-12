@@ -1,6 +1,7 @@
 package schedly
 
 import (
+	"sync"
 	"time"
 )
 
@@ -29,6 +30,7 @@ func NewScheduler(tick time.Duration) Scheduler {
 		jobs:       make(map[*schedule][]*job),
 		toFinish:   make(chan int),
 		globalStop: make(chan bool),
+		wg:         new(sync.WaitGroup),
 	}
 }
 
@@ -39,6 +41,7 @@ type scheduler struct {
 	tick       time.Duration
 	aligned    bool
 	ticker     *time.Ticker
+	wg         *sync.WaitGroup
 }
 
 func (s *scheduler) Tick() time.Duration {
@@ -112,7 +115,7 @@ func (s *scheduler) WaitUntilStopped() {
 }
 
 func (s *scheduler) WaitForRunningTasks() {
-	// TODO: use waitgroup to wait for running tasks
+	s.wg.Wait()
 }
 
 func (s *scheduler) runPending(tick time.Time) {
@@ -126,5 +129,17 @@ func (s *scheduler) runPending(tick time.Time) {
 }
 
 func (s *scheduler) runJob(tick time.Time, j *job) {
-	j.Run(tick)
+	s.wg.Add(1)
+
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				// TODO: provide an interface for task state change listener
+			} else {
+				// TODO: provide an interface for task state change listener
+			}
+			s.wg.Done()
+		}()
+		j.Run(tick)
+	}()
 }

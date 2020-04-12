@@ -15,6 +15,7 @@ type job struct {
 	exclusive  bool
 	lock       sync.Mutex
 }
+
 /*Name returns the job name*/
 func (j *job) Name() string {
 	return j.name
@@ -44,12 +45,11 @@ func (j *job) SetExclusive(exclusive bool) {
 Parameter `tick` is time from internal ticker. Last job run time is set to this value before launch*/
 func (j *job) Run(tick time.Time) {
 	j.lastRun = tick
-	go func() {
-		if j.exclusive {
-			j.lock.Lock()
-			defer j.lock.Unlock()
-		}
-		j.jobFunc()
-		j.lastFinish = time.Now()
-	}()
+
+	if j.exclusive {
+		j.lock.Lock()
+		defer j.lock.Unlock()
+	}
+	j.jobFunc()
+	j.lastFinish = time.Now()
 }
