@@ -1,16 +1,18 @@
-# schedly: A job scheduling library for Golang applications
+# Schedly: A job scheduling library for Golang applications
 ![Go Test](https://github.com/justpresident/schedly/workflows/Go%20Test/badge.svg?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/justpresident/schedly)](https://goreportcard.com/report/github.com/justpresident/schedly)
+
+## What is it?
 
 Very simple and flexible task scheduling library for Golang applications without extra dependencies.
 
-**This is a WIP project. The interface will most probably change in the nearest future. Please stay tuned for a final release**
+## Usage
 
-Install:
+### Install
 ```bash
 go get github.com/justpresident/schedly
 ```
 
-Examples:
+### Examples
 ```go
 package main
 
@@ -57,3 +59,5 @@ To stop scheduler from running new tasks:
   // and optionally
   sched.WaitForRunningTasks() // to gracefully wait for all the running tasks to finish
 ```
+## How to contribute
+Please refer to the contribution guidelines here: [/docs/CONTRIBUTING.md](/docs/CONTRIBUTING.md)
