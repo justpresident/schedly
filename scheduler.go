@@ -70,6 +70,11 @@ func (s *scheduler) Schedule(every time.Duration, name string, jobFunc func()) *
 func (s *scheduler) AddJob(schedule *schedule, name string, jobFunc func()) *job {
 	// TODO: Check that job name is unique
 	// TODO: Create an interface for retrieving jobs state
+
+	if schedule.aligned {
+		s.SetAligned(true)
+	}
+
 	j := &job{
 		jobFunc: jobFunc,
 		name:    name,
