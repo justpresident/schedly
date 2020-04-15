@@ -24,8 +24,9 @@ func (s *schedule) IntervalMode() bool {
 /*SetIntervalMode sets intervalMode. When 'true' job schedule receives previous successful finish time as a param in CanRun method.
 
   When 'false' job schedule receives previous start time as a param in CanRun method*/
-func (s *schedule) SetIntervalMode(intervalMode bool) {
+func (s *schedule) SetIntervalMode(intervalMode bool) *schedule {
 	s.intervalMode = intervalMode
+	return s
 }
 
 /*Aligned returns Aligned flag. If set to true tasks are launched at the beginning of configured 'Every' interval

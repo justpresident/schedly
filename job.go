@@ -37,8 +37,9 @@ func (j *job) Exclusive() bool {
 }
 
 /*SetExclusive configures Exclusive mode. When 'true' it prevents from running multiple instances of the job at the same time*/
-func (j *job) SetExclusive(exclusive bool) {
+func (j *job) SetExclusive(exclusive bool) *job {
 	j.exclusive = exclusive
+	return j
 }
 
 /* Run the job.
