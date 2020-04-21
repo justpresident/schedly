@@ -1,5 +1,5 @@
 # Schedly: A job scheduling library for Golang applications
-![Go Test](https://github.com/justpresident/schedly/workflows/Go%20Test/badge.svg?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/justpresident/schedly)](https://goreportcard.com/report/github.com/justpresident/schedly)
+![Go Test](https://github.com/justpresident/schedly/workflows/Go%20Test/badge.svg?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/justpresident/schedly)](https://goreportcard.com/report/github.com/justpresident/schedly) [![GoDoc Widget]][GoDoc]
 
 ## What is it?
 
@@ -107,3 +107,6 @@ myJob.Exclusive() // returns exclusive launch setting (read above)
 
 ## How to contribute
 Please refer to the contribution guidelines here: [/docs/CONTRIBUTING.md](/docs/CONTRIBUTING.md)
+
+[GoDoc]: https://pkg.go.dev/github.com/justpresident/schedly
+[GoDoc Widget]: https://img.shields.io/badge/godoc-reference-007d9c?logo=go&logoColor=white
