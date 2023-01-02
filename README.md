@@ -3,7 +3,7 @@
 
 ## What is it?
 
-Very simple and flexible task scheduling library for Golang applications without extra dependencies.
+Very light weight and flexible task scheduling library for Golang applications without extra dependencies.
 
 ## Usage
 
